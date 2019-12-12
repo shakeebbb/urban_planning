@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <!-- <include file="$(find arpg_husky)/launch/hosts.launch"/> -->
+
+  <!-- Robot namespace -->
+  <!-- <arg name="mav_name" default="B01"/> -->
+  <!-- <group ns="$(arg mav_name)"> -->
+  <node pkg="marble-frontier" type="msfm3d" name="global_planning" output="screen">
+    <!-- Inputs (Subscribed Topic Names) -->
+
+    <!-- <remap from="octomap_binary" to="octomap_full"/> -->
+    <remap from="pose" to="pose"/>
+
+    <!-- Outputs (Published Topic Names) -->
+
+    <!-- <remap from="nearest_frontier" to="X1/nearest_frontier"/> -->
+    <!-- <remap from="frontier_goal_pose" to="X1/frontier_goal_pose"/> -->
+    <!-- <remap from="planned_path" to="X1/planned_path"/> -->
+    <!-- <remap from="frontier" to="X1/frontier"/> -->
+    <!-- <remap from="goalFrustum" to="X1/goalFrustum"/> -->
+    <!-- <remap from="inflatedOctomap" to="X1/inflatedOctomap"/> -->
+    <!-- <remap from="artifact_list" to="X1/report_artifact"/> -->
+    <remap from="voxblox_node/tsdf_pointcloud" to="B01/voxblox_node/esdf_pointcloud"/>
+
+    <!-- Parameters -->
+    <!-- Map Resolution -->
+    <param name="resolution" value="0.2"/>
+
+    <!-- The planner assumes the vehicle is an air vehicle.  If the vehicle is constrained to the ground (wheeled vehicle), set to true. -->
+    <param name="isGroundVehicle" value="false"/>
+
+	<!-- Whether or not you want to use an Occupancy Grid or an ESDF map type -->
+    <param name="useOctomap" value="false"/>
+
+    <!-- Name of the map world frame -->
+    <param name="frame_id" type="string" value="world"/>
+
+    <!-- Vehicle speed in m/s and turnRate in deg/s -->
+    <param name="speed" value="1.0"/>
+    <param name="turnRate" value="10.0"/>
+
+    <!-- Frontier Clustering parameters (in voxels) -->
+    <param name="cluster_radius" value="0.30" />
+    <param name="min_cluster_size" value="50" />
+
+    <!-- Number of ticks before replanning -->
+    <param name="replan_ticks" value="12" />
+
+    <!-- Location of the environment entrance. (Default is [0.0, 0.0, 0.0])  The robot will not explore area within entrance_radius meters of this point -->
+    <param name="entrance_x" value="0.0" />
+    <param name="entrance_y" value="0.0" />
+    <param name="entrance_z" value="0.6" />
+    <param name="entrance_radius" value="0.0" />
+
+    <!-- Camera viewing parameters, angles in degrees, ranges in meters -->
+    <param name="cameraVerticalFoV" value="45.0"/>
+    <param name="cameraHorizontalFoV" value="120.0"/>
+    <param name="cameraMaxRange" value="2.5"/>
+    <param name="cameraMinRange" value="0.5"/>
+
+    <!-- Quaternion for rotation from robot orientation to camera orientation (Default is identity rotation matrix) -->
+    <!-- <param name="robot2camera_q_w" value="1.0"/>
+    <param name="robot2camera_q_x" value="0.0"/>
+    <param name="robot2camera_q_y" value="0.0"/>
+    <param name="robot2camera_q_z" value="0.0"/> -->
+
+    <!-- Update Rate, default is 1.0 Hz -->
+    <param name="updateRate" value="1.0"/>
+
+    <!-- Inflated Obstacle width -->
+    <param name="inflateWidth" value="0.2"/>
+
+    <!-- Vehicle Fence Volume Limits -->
+    <!-- <param name="fenceOn" value="true"/>
+    <param name="fence_xmin" value="-1000.0"/>
+    <param name="fence_xmax" value="1000.0"/>
+    <param name="fence_ymin" value="-1000.0"/>
+    <param name="fence_ymax" value="1000.0"/>
+    <param name="fence_zmin" value="-50.0"/>
+    <param name="fence_zmax" value="2.5"/> -->
+
+    <!-- Vehicle Volume Extents -->
+    <param name="vehicleVolumeOn" value="true"/>
+    <param name="vehicleVolumeXmin" value="-0.5"/>
+    <param name="vehicleVolumeXmax" value="0.5"/>
+    <param name="vehicleVolumeYmin" value="-0.5"/>
+    <param name="vehicleVolumeYmax" value="0.5"/>
+    <param name="vehicleVolumeZmin" value="-0.5"/>
+    <param name="vehicleVolumeZmax" value="0.5"/>
+
+    <!-- Fix vehicle goal height (in meters) above map ground level for a quad/ground vehicle -->
+    <param name="fixGoalHeightAGL" value="true"/>
+    <param name="goalHeightAGL" value="0.6"/>
+
+    <!-- Fix the delta z in voxels from the vehicle current height that are considered frontiers -->
+    <param name="dzFrontierVoxelWidth" value="-1"/>
+
+  </node>
+
+  <include file="$(find tf2pose)/launch/tf2pose.launch" />
+
+</launch>
