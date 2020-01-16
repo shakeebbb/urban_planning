@@ -99,4 +99,7 @@
 
   <include file="$(find tf2pose)/launch/tf2pose.launch" />
 
+  <!-- Launch lookahead calculator -->
+  <node pkg="marble-frontier" name="lookahead" type="subt_guidance_node.py" output="screen" args = "'B01' 'air' 'L2' 1.5"/>
+
 </launch>
