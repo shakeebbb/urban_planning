@@ -1,7 +1,7 @@
 
 <launch>
   <arg name="mav_name" default="B01"/>
-  <arg name="frame_id" default="world" />
+  <arg name="frame_id" default="map" />
   <arg name="verbose" default="false"/>
   <arg name="voxel_size" default="0.2" />
   <arg name="robot_radius" default="0.1" />
