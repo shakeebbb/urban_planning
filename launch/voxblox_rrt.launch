@@ -5,11 +5,11 @@
   <arg name="verbose" default="false"/>
   <arg name="voxel_size" default="0.2" />
   <arg name="robot_radius" default="0.1" />
-  <arg name="clear_radius" default="0.1" />
+  <arg name="clear_radius" default="0.8" />
 
   <group ns="$(arg mav_name)">
     <node name="voxblox_node" pkg="voxblox_ros" type="esdf_server" output="screen" args="-alsologtostderr" clear_params="true">
-      <remap from="pointcloud" to="/os1_cloud_node/points"/>
+      <remap from="pointcloud" to="/B01/pcl_merge/cloud"/>
       <!--remap from="voxblox_node/esdf_map_out" to="esdf_map" /-->
       <!--remap from="voxblox_node/tsdf_map_out" to="tsdf_map" /-->
 
@@ -25,8 +25,8 @@
       <param name="method" value="fast" />
       <param name="tsdf_voxel_size" value="$(arg voxel_size)" />
       <param name="tsdf_voxels_per_side" value="16" />
-      <param name="esdf_max_distance_m" value="4.0" />
-      <param name="max_ray_length_m" value="10.0" />
+      <param name="esdf_max_distance_m" value="5.0" />
+      <param name="max_ray_length_m" value="10.0" /> <!-- 5 -->
       <param name="voxel_carving_enabled" value="true" />
       <param name="color_mode" value="color" />
       <param name="use_tf_transforms" value="true" />
@@ -65,6 +65,9 @@
     </node> -->
 
     <!-- <node name="voxblox_planner_node" pkg="li_pkg" type="voxblox_planner_node" output="screen" clear_params="true"/> -->
-
+	<include file="$(find msfm3d)/launch/msfm3d_air.launch"/>
+	<include file="$(find marble_guidance)/launch/guidance_air.launch"/>
+	
 	</group>
+	<node pkg="msfm3d" name="tf2odom" type="subt_tf2odom_B01.py" output="screen"/>
 </launch>
