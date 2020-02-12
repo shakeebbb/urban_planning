@@ -8,8 +8,13 @@
   <arg name="clear_radius" default="0.8" />
 
   <group ns="$(arg mav_name)">
+
+    <node name="relay_ouster" type="relay" pkg="topic_tools" args="/os1_cloud_node/points vb_cloud"/>
+    <node name="relay_up_pico_flexx" type="relay" pkg="topic_tools" args="up/up_camera/stream/1/cloud vb_cloud"/>
+    <node name="relay_down_pico_flexx" type="relay" pkg="topic_tools" args="down/down_camera/stream/1/cloud vb_cloud"/>
+
     <node name="voxblox_node" pkg="voxblox_ros" type="esdf_server" output="screen" args="-alsologtostderr" clear_params="true">
-      <remap from="pointcloud" to="/B01/pcl_merge/cloud"/>
+      <remap from="pointcloud" to="vb_cloud"/>
       <!--remap from="voxblox_node/esdf_map_out" to="esdf_map" /-->
       <!--remap from="voxblox_node/tsdf_map_out" to="tsdf_map" /-->
 
