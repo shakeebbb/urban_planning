@@ -1,7 +1,7 @@
 
 <launch>
-  <arg name="mav_name" default="B01"/>
-  <arg name="frame_id" default="map" />
+  <arg name="mav_name" default="A01"/>
+  <arg name="frame_id" default="world" />
   <arg name="verbose" default="false"/>
   <arg name="voxel_size" default="0.2" />
   <arg name="robot_radius" default="0.1" />
@@ -9,7 +9,7 @@
 
   <group ns="$(arg mav_name)">
 
-    <node name="relay_ouster" type="relay" pkg="topic_tools" args="/os1_cloud_node/points vb_cloud"/>
+    <node name="relay_ouster" type="relay" pkg="topic_tools" args="/os1_cloud_node/points_box_filter vb_cloud"/>
     <node name="relay_up_pico_flexx" type="relay" pkg="topic_tools" args="up/up_camera/stream/1/cloud vb_cloud"/>
     <node name="relay_down_pico_flexx" type="relay" pkg="topic_tools" args="down/down_camera/stream/1/cloud vb_cloud"/>
 
@@ -30,7 +30,7 @@
       <param name="method" value="fast" />
       <param name="tsdf_voxel_size" value="$(arg voxel_size)" />
       <param name="tsdf_voxels_per_side" value="16" />
-      <param name="esdf_max_distance_m" value="5.0" />
+      <param name="esdf_max_distance_m" value="10.0" />
       <param name="max_ray_length_m" value="10.0" /> <!-- 5 -->
       <param name="voxel_carving_enabled" value="true" />
       <param name="color_mode" value="color" />
