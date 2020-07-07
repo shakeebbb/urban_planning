@@ -2,4 +2,8 @@
 	<include file="$(find urban_planning)/launch/octomap_mapping.launch"/>
 	<include file="$(find marble_common)/launch/launch_multimaster.launch"/>
 	<include file="$(find marble_multi_agent)/launch/multi_agent.launch"/>
+	<include file="$(find urban_planning)/launch/estop.launch"/>
+	<!-- include file="$(find marble_artifact_detection)/launch/artifact_detection_multiple_at_uav.launch"/>
+	<include file="$(find marble_origin_detection)/launch/origin_detection_multiple.launch"/ -->
+	
 </launch>
