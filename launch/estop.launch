@@ -1,10 +1,12 @@
 
 <launch>
-    <node name="serial_node" pkg="rosserial_python" type="serial_node.py" output="screen" args="/dev/estop_teensy" clear_params="true">
-	<remap from = "estop_cmd" to = "/A01/drone_pose/estop_command_topic"/>
-    </node>
-    <node name="estop2bool" pkg="urban_planning" type="estop2bool" output="screen">
-    	<remap from = "bool_topic" to = "/A01/drone_pose/estop_status_topic"/>
-    	<remap from = "estop_topic" to = "/estop_status"/>      
-    </node>
+  <node name="serial_node" pkg="rosserial_python" type="serial_node.py" output="screen" args="/dev/estop_teensy">
+    <remap from = "estop_cmd" to = "drone_pose/estop_command_topic"/>
+  </node>
+
+  <node name="estop2bool" pkg="urban_planning" type="estop2bool" output="screen">
+    <remap from = "bool_topic" to = "drone_pose/estop_status_topic"/>
+    <remap from = "estop_topic" to = "estop_status"/>      
+  </node>
+
 </launch>

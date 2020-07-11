@@ -7,7 +7,7 @@
   www.ros.org/wiki/octomap_server for details  
 -->
 <launch>
-	<group ns="A01">
+
 	<node pkg="octomap_server" type="octomap_server_node" name="octomap_server">
 		<param name="resolution" value="0.2" />
 		
@@ -25,9 +25,10 @@
 		<param name="filter_ground" value="false" />
 		
 		<!-- data source to integrate (PointCloud2) -->
-                <remap from="cloud_in" to="vb_cloud" />
+    <remap from="cloud_in" to="vb_cloud" />
+
 		<!--<remap from="cloud_in" to="/os1_cloud_node/points" />-->
 		<remap from="octomap_binary" to="octomap_binary" />
 	</node>
-	</group>
+
 </launch>
