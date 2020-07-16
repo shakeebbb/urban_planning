@@ -14,7 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   std_msgs
-  ####estop_msgs
+  estop_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -138,9 +138,9 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 
- ####add_executable(estop2bool src/estop2bool.cpp)
- add_executable(topic_check src/topic_check.cpp)
- ####add_dependencies(estop2bool estop_msgs)
+ add_executable(estop2bool src/estop2bool.cpp)
+ add_executable(uav_master src/uav_master.cpp)
+ add_dependencies(estop2bool estop_msgs)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -154,10 +154,10 @@ include_directories(
 
 ## Specify libraries to link a library or executable target against
 
- ####target_link_libraries(estop2bool
- ####  ${catkin_LIBRARIES}
- ####)
- target_link_libraries(topic_check
+ target_link_libraries(estop2bool
+   ${catkin_LIBRARIES}
+ )
+ target_link_libraries(uav_master
    ${catkin_LIBRARIES}
  )
 
