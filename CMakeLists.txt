@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(urban_planning)
+project(marble_uav)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -139,7 +139,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 
  add_executable(estop2bool src/estop2bool.cpp)
- add_executable(uav_master src/uav_master.cpp)
+ add_executable(marble_uav src/marble_uav.cpp)
  add_dependencies(estop2bool estop_msgs)
 
 ## Rename C++ executable without prefix
@@ -157,7 +157,7 @@ include_directories(
  target_link_libraries(estop2bool
    ${catkin_LIBRARIES}
  )
- target_link_libraries(uav_master
+ target_link_libraries(marble_uav
    ${catkin_LIBRARIES}
  )
 
