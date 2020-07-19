@@ -2,11 +2,11 @@
 
   <arg name="sensors" default="true"/>
   <arg name="local_plan" default="true"/>
-  <arg name="global_plan" default="true"/>
-  <arg name="origin" default="true"/>
-  <arg name="artifact" default="true"/>
+  <arg name="global_plan" default="false"/>
+  <arg name="origin" default="false"/>
+  <arg name="artifact" default="false"/>
   <arg name="flight" default="true"/>
-  <arg name="multiagent" default="true"/>
+  <arg name="multiagent" default="false"/>
   
 	<include if=$(arg sensors) file="$(find li_pkg)/launch/li.launch">
     <arg name="log_output" value="log"/>

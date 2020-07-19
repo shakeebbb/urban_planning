@@ -41,6 +41,5 @@
 	<include file="$(find msfm3d)/launch/msfm3d_air.launch"/>
 	<include file="$(find marble_guidance)/launch/guidance_air.launch"/>
 	
-	</group>
 	<node pkg="msfm3d" name="tf2odom" type="subt_tf2odom_B01.py" output="screen"/>
 </launch>
