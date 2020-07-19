@@ -168,29 +168,25 @@ bool global_comm_cb(marble_uav_msgs::GlobalComm::Request& req, marble_uav_msgs::
     res.message = message;
     return true;
   }
+  if(req.action == marble_uav_msgs::GlobalComm::Request::LAUNCH)
+  {
+    std::string message;
+    launch_process(req.process_id, message);
+    return true;
+  }
+}
+
+void launch_process(uint32_t processId, std::string& msg)
+{
+  msg = "Launching process";
+  if(processId == marble_uav_msgs::GlobalComm::Request::SYSTEM)
+   system("/home/shakeeb/dev_ws/src/marble_uav_pkgs/scripts/launch_system.sh");
 }
 
 uint32_t get_process_status(uint32_t processId, std::string& errorMsg)
 {
   if(processId == marble_uav_msgs::GlobalComm::Request::SYSTEM)
     return get_system_status(errorMsg);
-/*
-  if(processId == marble_uav_msgs::GlobalComm::SENSORS)
-    return get_sensors_status(errorMsg);
-  if(processId == marble_uav_msgs::GlobalComm::ORIGIN_DETECTION)
-    return get_origin_status(errorMsg);
-  if(processId == marble_uav_msgs::GlobalComm::LOCAL_PLAN)
-    return get_local_plan_status(errorMsg);
-  if(processId == marble_uav_msgs::GlobalComm::GLOBAL_PLAN)
-    return get_global_plan_status(errorMsg);
-  if(processId == marble_uav_msgs::GlobalComm::ARTIFACT_DETECTION)
-    return get_artifact_status(errorMsg);
-  if(processId == marble_uav_msgs::GlobalComm::FLIGHT_STACK)
-    return get_flight_status(errorMsg);
-  if(processId == marble_uav_msgs::GlobalComm::TAKE_OFF)
-    return get_take_off_status(errorMsg);
-  if(processId == marble_uav_msgs::GlobalComm::LAND)
-    return get_land_status(errorMsg);*/
 }
 
 uint32_t get_system_status(std::string& errorMsg)
