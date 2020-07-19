@@ -2,9 +2,12 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "geometry_msgs/TwistStamped.h"
+#include "geometry_msgs/Vector3Stamped.h"
+#include "sensor_msgs/Imu.h"
 #include "marble_uav_msgs/GlobalComm.h"
 
-enum class STATUS { TOPIC_UNRELIABLE, TOPIC_TIMEOUT, TOPIC_OK, PROCESS_DOWN, PROCESS_UP, PROCESS_UNRELIABLE, PREREQ_UNAVAILABLE, PREREQ_OK };
+enum class STATUS {TOPIC_UNRELIABLE, TOPIC_TIMEOUT, TOPIC_OK}; // Topic status
 
 // **************************************************************
 template <class T> 
@@ -13,9 +16,13 @@ class topic_class
 private:
   bool alive_;
   double duration_; // listen duration
+  double timeOut_;
   double rate_; // current topic rate
   double minRateExp_; // minimum expected rate
   double maxRateExp_; // maximum expected rate
+
+  double firstMsgStamp_;
+  double nRecvdMsgs_;
 
   std::string topicName_;
   ros::NodeHandle* nh_;
@@ -23,51 +30,48 @@ private:
   ros::Subscriber topicSub_;
 
 public: 
-  topic_class(ros::NodeHandle* nh, std::string topicName, double duration, double expRate, double rateTol)
+  topic_class(ros::NodeHandle* nh, std::string topicName, double duration, double timeOut, double expRate, double rateTol)
   {
-    queryTimeOut_ = queryTimeOut;
     duration_ = duration;
+    timeOut_ = timeOut;
     topicName_ = topicName;
     minRateExp_ = expRate - rateTol;
     maxRateExp_ = expRate + rateTol;
     nh_ = nh;
 
-    update();
+    update_status();
   }
 
   void topic_cb(const T& msg)
   {
-    const static double tic = ros::Time::now().toSec();
-    static double nRecvdMsgs = -1;
+    if(!alive_)
+    {
+     firstMsgStamp_ = ros::Time::now().toSec();
+     nRecvdMsgs_ = -1;
+    }
+
     alive_ = true;
-    nRecvdMsgs ++; 
+    nRecvdMsgs_ ++; 
   
-    double timeElapsed = ros::Time::now().toSec() - tic;
+    double timeElapsed = ros::Time::now().toSec() - firstMsgStamp_;
     if ( timeElapsed > duration_)
     {
-		  rate_ = nRecvdMsgs / timeElapsed;
+		  rate_ = nRecvdMsgs_ / timeElapsed;
 		  topicSub_.shutdown();
     }
-    std::cout << "Time Elapsed= " << timeElapsed << ", Messages= " << nRecvdMsgs << std::endl;
+    //std::cout << "Time Elapsed= " << timeElapsed << ", Messages= " << nRecvdMsgs_ << std::endl;
   }
 
-  double rate(double timeOut)
+  double topic_rate()
   {
-    ros::Rate r(10); // 10 hz
-    static double tic = ros::Time::now().toSec();
-
-    while (ros::ok() && (ros::Time::now().toSec() - tic) < timeOut)
-    {
-      if(rate_ > 0.0)
-        break;
-      r.sleep();
-    }
+    if(rate_ == 0.0)
+     sleep(timeOut_);
     return rate_;
   }
 
-  STATUS get_status(double timeOut)
+  STATUS get_status()
   {
-    double rate = rate(timeOut);
+    double rate = topic_rate();
     if (rate > minRateExp_ && rate < maxRateExp_)
       return STATUS::TOPIC_OK;
     if (rate < minRateExp_ && rate_ > 0.0)
@@ -83,80 +87,11 @@ public:
    return alive_;
   }
 
-  void update()
+  void update_status()
   {
     rate_ = 0.0;
     alive_ = false;
-    topicSub_ = nh->subscribe(topicName_, 1, &topic_class::topic_cb, this);
-  }
-};
-
-// **************************************************************
-class process_class
-{
-private:
-  marble_uav_msgs::GlobalComm::process_id processId_;
-  std::string launchCommand_;
-  std::vector<topic_class> topics_;
-  std::vector<process_class> parents_;
-  double timeOut_; // should be greater than the listen time of the topics
-  double rateTol_;
-public:
-  process_class(marble_uav_msgs::GlobalComm::process_id processId, std::vector<topic_class>& topics, std::string launchCommand, double timeOut, double rateTol, std::vector<process_class>& parents)
-  {
-    topics_ = topics;
-    launchCommand_ = launchCommand;
-    processId_ = processId;
-    timeOut_ = timeOut;
-    rateTol_ = rateTol;
-    parents_ parents;
-  }
-
-  STATUS get_parent_status
-  {
-    for (int i=0;i<parents_.size();i++)
-    {
-      STATUS processStatus = parents_[i].get_status();
-   
-      if (processStatus != STATUS::PROCESS_UP)
-        return STATUS::PREREQ_UNAVAILABLE;
-    }
-    return STATUS::PREREQ_OK;
-  }
-
-  STATUS get_status()
-  {
-    for (int i=0;i<topics_.size();i++)
-    {
-      int nOkTopics = 0;
-      int nUnreliableTopics = 0;
-      STATUS topicStatus = topics_[i].get_status(timeOut_);
-      
-      if(topicStatus = STATUS::TOPIC_OK())
-       nOkTopics++;
-      if(topicStatus = STATUS::TOPIC_UNRELIABLE())
-       nUnreliableTopics++;
-    }
-    
-    if (nOkTopics == topics_.size())
-      return STATUS::PROCESS_UP;
-    if (nOkTopics > 0 && nOkTopics < topics_.size())
-      return STATUS::PROCESS_UNRELIABLE;
-    if (nUnreliableTopics > 0)
-      return STATUS::PROCESS_UNRELIABLE;
-    
-    return STATUS::PROCESS_DOWN;
-  }
-
-  refresh_status()
-  {
-    for (int i=0;i<topics_.size();i++)
-      topics_[i].update();
-  }
-  
-  marble_uav_msgs::GlobalComm::process_id get_id()
-  {
-    return processId_;
+    topicSub_ = nh_->subscribe(topicName_, 1, &topic_class::topic_cb, this);
   }
 };
 
@@ -166,48 +101,179 @@ class marble_uav_class
 {
 private:
 
-double rateTol_;
-
 ros::ServiceServer globalCommSrvr_;
+topic_class<geometry_msgs::Pose>* cartPose_;
+topic_class<geometry_msgs::Pose>* mavrosPose_;
+topic_class<sensor_msgs::Imu>* imuMsg_;
+topic_class<geometry_msgs::Vector3Stamped>* foreRepVel_;
+topic_class<geometry_msgs::Vector3Stamped>* upRepVel_;
+topic_class<geometry_msgs::Vector3Stamped>* downRepVel_;
+topic_class<geometry_msgs::TwistStamped>* cmdVel_;
 
-topic_class<geometry_msgs::PoseStamped>* mavrosTopic_;
+/* *****
+topic_class<ROS_TYPE>* TOPIC_OBJ_;
+***** */
 
 public:
 
-uav_master_class(ros::NodeHandle* nh)
+marble_uav_class(ros::NodeHandle* nh)
 {
-  nh->getParam("topic_rate_tolerance", rateTol_);
-  ROS_INFO("%s: Parameters retrieved from parameter server", nh->getNamespace().c_str());
+  std::cout << "Constructor called" << std::endl;
+
+  double topicRateTol; double topicListenDur; double topicTimeout;
+  while(!nh->getParam("topic_listen_duration", topicListenDur));
+  while(!nh->getParam("topic_time_out", topicTimeout));
+  while(!nh->getParam("topic_rate_tolerance_hz", topicRateTol));
+
+  std::cout << "Double params" << std::endl;
+  std::vector<std::string> topicParam;
+
+  while(!nh->getParam("cart_pose_topic", topicParam));
+  cartPose_ = new topic_class<geometry_msgs::Pose>(nh, topicParam[1], topicListenDur, topicTimeout, stod(topicParam[0]), topicRateTol);
+
+  while(!nh->getParam("mavros_pose_topic", topicParam));
+  mavrosPose_ = new topic_class<geometry_msgs::Pose>(nh, topicParam[1], topicListenDur, topicTimeout, stod(topicParam[0]), topicRateTol);
+  
+  while(!nh->getParam("imu_topic", topicParam));
+  imuMsg_ = new topic_class<sensor_msgs::Imu>(nh, topicParam[1], topicListenDur, topicTimeout, stod(topicParam[0]), topicRateTol);
+
+  while(!nh->getParam("fore_rep_vel_topic", topicParam));
+  foreRepVel_ = new topic_class<geometry_msgs::Vector3Stamped>(nh, topicParam[1], topicListenDur, topicTimeout, stod(topicParam[0]), topicRateTol);
+
+  while(!nh->getParam("up_rep_vel_topic", topicParam));
+  upRepVel_ = new topic_class<geometry_msgs::Vector3Stamped>(nh, topicParam[1], topicListenDur, topicTimeout, stod(topicParam[0]), topicRateTol);
+  
+  while(!nh->getParam("down_rep_vel_topic", topicParam));
+  downRepVel_ = new topic_class<geometry_msgs::Vector3Stamped>(nh, topicParam[1], topicListenDur, topicTimeout, stod(topicParam[0]), topicRateTol);
+
+  while(!nh->getParam("command_velocity_topic", topicParam));
+  cmdVel_ = new topic_class<geometry_msgs::TwistStamped>(nh, topicParam[1], topicListenDur, topicTimeout, stod(topicParam[0]), topicRateTol);
+
+/* *****
+while(!nh->getParam("TOPIC", topicParam));
+TOPIC_CLASS_OBJ = new topic_class<ROS_TYPE>(nh, topicParam[1], topicListenDur, topicTimeout, stod(topicParam[0]), topicRateTol);
+***** */
+
+  ROS_INFO("%s, Parameters retreived from the parameter server", nh->getNamespace().c_str());
 
   globalCommSrvr_ = nh->advertiseService("global_comm_service", &marble_uav_class::global_comm_cb, this);
+}
 
-  mavrosTopic_ = new topic_class<geometry_msgs::PoseStamped>(nh, "topic_in", 3);
+bool global_comm_cb(marble_uav_msgs::GlobalComm::Request& req, marble_uav_msgs::GlobalComm::Response& res)
+{
+  if(req.action == marble_uav_msgs::GlobalComm::Request::GET_STATUS)
+  {
+    std::string message;
+    res.status = get_process_status(req.process_id, message);
+    res.message = message;
+    return true;
+  }
+}
+
+uint32_t get_process_status(uint32_t processId, std::string& errorMsg)
+{
+  if(processId == marble_uav_msgs::GlobalComm::Request::SYSTEM)
+    return get_system_status(errorMsg);
+/*
+  if(processId == marble_uav_msgs::GlobalComm::SENSORS)
+    return get_sensors_status(errorMsg);
+  if(processId == marble_uav_msgs::GlobalComm::ORIGIN_DETECTION)
+    return get_origin_status(errorMsg);
+  if(processId == marble_uav_msgs::GlobalComm::LOCAL_PLAN)
+    return get_local_plan_status(errorMsg);
+  if(processId == marble_uav_msgs::GlobalComm::GLOBAL_PLAN)
+    return get_global_plan_status(errorMsg);
+  if(processId == marble_uav_msgs::GlobalComm::ARTIFACT_DETECTION)
+    return get_artifact_status(errorMsg);
+  if(processId == marble_uav_msgs::GlobalComm::FLIGHT_STACK)
+    return get_flight_status(errorMsg);
+  if(processId == marble_uav_msgs::GlobalComm::TAKE_OFF)
+    return get_take_off_status(errorMsg);
+  if(processId == marble_uav_msgs::GlobalComm::LAND)
+    return get_land_status(errorMsg);*/
+}
+
+uint32_t get_system_status(std::string& errorMsg)
+{
+  int badTopics = 0;
+
+  cartPose_->update_status();
+  mavrosPose_->update_status();
+  imuMsg_->update_status();
+  foreRepVel_ -> update_status();
+  upRepVel_ -> update_status();
+  downRepVel_ -> update_status();
+  cmdVel_ -> update_status();
+
+/* *****
+topic_class_obj -> update_status();
+***** */  
+
+  if(cartPose_->get_status() != STATUS::TOPIC_OK)
+  {
+   badTopics ++;
+   errorMsg += "SYSTEM: Cartographer pose not available \n";
+  }
+  if(mavrosPose_->get_status() != STATUS::TOPIC_OK)
+  {
+   badTopics ++;
+   errorMsg += "SYSTEM: Mavros pose not available \n";
+  }
+  if(imuMsg_->get_status() != STATUS::TOPIC_OK)
+  {
+   badTopics ++;
+   errorMsg += "SYSTEM: Imu topic not available \n";
+  }
+  if(foreRepVel_->get_status() != STATUS::TOPIC_OK)
+  {
+   badTopics ++;
+   errorMsg += "SYSTEM: Fore repulsive velocity not available \n";
+  }
+  if(upRepVel_->get_status() != STATUS::TOPIC_OK)
+  {
+   badTopics ++;
+   errorMsg += "SYSTEM: Up repulsive velocity not available \n";
+  }
+  if(downRepVel_->get_status() != STATUS::TOPIC_OK)
+  {
+   badTopics ++;
+   errorMsg += "SYSTEM: Down repulsive velocity not available \n";
+  }
+  if(cmdVel_->get_status() != STATUS::TOPIC_OK)
+  {
+   badTopics ++;
+   errorMsg += "SYSTEM: Command velocity not available \n";
+  }
+
+/* *****
+if(TOPIC_CLASS_OBJ_->get_status() != STATUS::TOPIC_OK)
+  {
+   badTopics ++;
+   errorMsg += "SYSTEM: TOPIC not available \n";
+  }
+***** */
+
+  if(badTopics > 0)
+   return marble_uav_msgs::GlobalComm::Response::DOWN; 
+  else
+   return marble_uav_msgs::GlobalComm::Response::UP;
 }
 
 void loop()
 {
-    ROS_INFO_THROTTLE(1, "%f", mavrosTopic_->rate());
-}
+  std::string msg;
 
-bool global_comm_cb(marble_uav_msgs::GlobalComm::Request&, marble_uav_msgs::GlobalComm::Response&)
-{
-  
-}
+  static double tic = ros::Time::now().toSec();
 
-bool check_process(marble_uav_msgs::GlobalComm::process_id processId)
-{
-  switch()
+  if((ros::Time::now().toSec() - tic) > 1)
   {
-   case marble_uav_msgs::GlobalComm::Sensors:
-     
-   break;
-   default:
+   std::cout << cartPose_->topic_rate() << std::endl;
+   tic = ros::Time::now().toSec();
   }
-}
 
-bool check_parents(marble_uav_msgs::GlobalComm::process_id processId)
-{
- 
+
+  //ROS_INFO_THROTTLE(2,"%i", get_system_status(msg));
+  //ROS_INFO_THROTTLE(5,"%i", cartPose_->topic_rate());
 }
 
 };
@@ -216,17 +282,13 @@ bool check_parents(marble_uav_msgs::GlobalComm::process_id processId)
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "marble_uav");
-  ros::NodeHandle nh("marble_uav");
+  ros::NodeHandle nh(ros::this_node::getName());
 
   marble_uav_class obj(&nh);
 
-  while(ros::ok())
-  {
-   obj.loop();
-   ros::spinOnce();
-  }
+  ros::AsyncSpinner spinner(2);
+	spinner.start();
+	ros::waitForShutdown(); 
+
 }
-
-
-
 // **************************************************************

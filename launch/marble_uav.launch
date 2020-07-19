@@ -1,0 +1,18 @@
+<launch>
+
+  <node pkg="marble_uav" type="marble_uav" name="marble_uav" output="screen">
+    <param name="topic_listen_duration" type="double" value="3.0"/>
+    <param name="topic_time_out" type="double" value="4.0"/>
+    <param name="topic_rate_tolerance_hz" type="double" value="0.1"/>
+
+    <rosparam param="cart_pose_topic"> ["10", "cart_pose"] </rosparam>
+    <rosparam param="mavros_pose_topic"> ["10", "mavros_pose"] </rosparam>
+    <rosparam param="imu_topic"> ["10", "imu"] </rosparam>
+    
+    <rosparam param="fore_rep_vel_topic"> ["10", "fore_cam_topic"] </rosparam>
+    <rosparam param="up_rep_vel_topic"> ["10", "up_cam_topic"] </rosparam>
+    <rosparam param="down_rep_vel_topic"> ["10", "down_cam_topic"] </rosparam>
+    <rosparam param="command_velocity_topic"> ["10", "cmd_vel"] </rosparam>
+  </node>
+	
+</launch>

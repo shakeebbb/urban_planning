@@ -1,0 +1,29 @@
+<launch>
+
+  <arg name="sensors" default="true"/>
+  <arg name="local_plan" default="true"/>
+  <arg name="global_plan" default="true"/>
+  <arg name="origin" default="true"/>
+  <arg name="artifact" default="true"/>
+  <arg name="flight" default="true"/>
+  <arg name="multiagent" default="true"/>
+  
+	<include if=$(arg sensors) file="$(find li_pkg)/launch/li.launch">
+    <arg name="log_output" value="log"/>
+  </include>
+
+  <include if=$(arg local_plan) file="$(find apf_pf)/launch/apf_pf.launch">
+    <arg name="log_output" value="log"/>
+  </include>
+
+  <include if=$(arg global_plan) file="$(find marble_uav)/launch/voxblox_frontier.launch">
+    <arg name="log_output" value="log"/>
+  </include>
+
+  <include if=$(arg flight) file="$(find drone_pose)/launch/complete.launch">
+    <arg name="log_output" value="log"/>
+  </include>
+
+  <node if="$(eval not origin)" pkg="tf2_ros" type="static_transform_publisher" name="map2world" args="0 0 0 0 0 0 world $(arg mav_name)/map"/>
+	
+</launch>

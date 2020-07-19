@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   estop_msgs
+  marble_uav_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -140,7 +141,6 @@ include_directories(
 
  add_executable(estop2bool src/estop2bool.cpp)
  add_executable(marble_uav src/marble_uav.cpp)
- add_dependencies(estop2bool estop_msgs)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
