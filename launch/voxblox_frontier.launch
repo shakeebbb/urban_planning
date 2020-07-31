@@ -5,8 +5,9 @@
   <arg name="voxel_size" default="0.2" />
   <arg name="robot_radius" default="0.1" />
   <arg name="clear_radius" default="0.8" />
+  <arg name="log_output" default="screen"/>
 
-  <node name="voxblox_node" pkg="voxblox_ros" type="esdf_server" output="screen" args="-alsologtostderr">
+  <node name="voxblox_node" pkg="voxblox_ros" type="esdf_server" output="$(arg log_output)" args="-alsologtostderr">
     <remap from="pointcloud" to="vb_cloud"/>
 
     <remap from="voxblox_node/esdf_map_out" to="voxblox_node/esdf_map_out" />
@@ -41,5 +42,5 @@
 	<include file="$(find msfm3d)/launch/msfm3d_air.launch"/>
 	<include file="$(find marble_guidance)/launch/guidance_air.launch"/>
 	
-	<node pkg="msfm3d" name="tf2odom" type="subt_tf2odom_B01.py" output="screen"/>
+	<node pkg="msfm3d" name="tf2odom" type="subt_tf2odom_B01.py" output="$(arg log_output)"/>
 </launch>

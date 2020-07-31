@@ -1,5 +1,7 @@
 <launch>
 
+  <arg name="mav_name" default="$(env ROS_NAMESPACE)"/>
+
   <arg name="sensors" default="true"/>
   <arg name="local_plan" default="true"/>
   <arg name="global_plan" default="false"/>
@@ -8,19 +10,19 @@
   <arg name="flight" default="true"/>
   <arg name="multiagent" default="false"/>
   
-	<include if=$(arg sensors) file="$(find li_pkg)/launch/li.launch">
+	<include if="$(arg sensors)" file="$(find li_pkg)/launch/li.launch">
     <arg name="log_output" value="log"/>
   </include>
 
-  <include if=$(arg local_plan) file="$(find apf_pf)/launch/apf_pf.launch">
+  <include if="$(arg local_plan)" file="$(find apf_pf)/launch/apf_pf.launch">
     <arg name="log_output" value="log"/>
   </include>
 
-  <include if=$(arg global_plan) file="$(find marble_uav)/launch/voxblox_frontier.launch">
+  <include if="$(arg global_plan)" file="$(find marble_uav)/launch/voxblox_frontier.launch">
     <arg name="log_output" value="log"/>
   </include>
 
-  <include if=$(arg flight) file="$(find drone_pose)/launch/complete.launch">
+  <include if="$(arg flight)" file="$(find drone_pose)/launch/complete.launch">
     <arg name="log_output" value="log"/>
   </include>
 
